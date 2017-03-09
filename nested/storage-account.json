@@ -1,0 +1,58 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "westus"
+        },
+        "storageAccountName1": {
+            "type": "string"
+        },
+        "storageAccountType": {
+            "type": "string"
+        }
+    },
+    "variables": {
+         "virtualMachineName": "desktop",
+         "suffix": "[substring(uniqueString(resourceGroup().id), 0, 5)]",
+        "storageAccountResourceUrl":""
+        "storageAccountName2":"[concat('str2',variables('virtualMachineName'),variables('suffix'))]",
+        "storageAccountType":"Standard_LRS"
+    },
+    "resources": [
+        {
+            "name": "[parameters('storageAccountName1')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2015-06-15",
+            "location": "[parameters('location')]",
+            "properties": {
+                "accountType": "[parameters('storageAccountType')]"
+            }
+        },
+        {
+            "name": "storageAccountResource",
+            "apiVersion": "2015-01-01",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('storageAccount2ResourceUrl')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "storageAccountName": {
+                        "value": "[variables('storageAccountName2')]"
+                    },
+                    "storageAccountType": {
+                        "value": "[variables('storageAccountType')]"
+                    }
+                }
+            }
+        }
+
+    ]
+}
