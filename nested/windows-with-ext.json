@@ -6,20 +6,18 @@
             "type": "string",
             "defaultValue": "westus"
         },
-        "adminUsername": {
-            "type": "string",
-            "defaultValue": "mesos"
+        "storageAccountName2":{
+            "type": "string"
         },
-        "adminPassword": {
-            "type": "securestring",
-            "defaultValue": "TestDriveUser123"
-        },
-        "fileUris": {
+        "storageAccountType":{
             "type": "string",
-            "defaultValue": "https://aztdrepo.blob.core.windows.net/mesosphere/scripts/script.ps1"
+            "defaultValue": "Standard_LRS"
         }
     },
     "variables": {
+        "adminUsername":"mesos",
+        "adminPassword":"TestDriveUser123",
+        "fileUris":"https://aztdrepo.blob.core.windows.net/mesosphere/scripts/script.ps1",
         "virtualMachineName": "desktop",
         "suffix": "[substring(uniqueString(resourceGroup().id), 0, 5)]",
         "storageAccountName": "[concat(variables('virtualMachineName'),variables('suffix'))]",
@@ -36,14 +34,18 @@
         "vnetId": "[resourceId('Microsoft.Network/virtualNetworks', variables('virtualNetworkName'))]",
         "subnetRef": "[concat(variables('vnetId'), '/subnets/', variables('subnetName'))]",
         "scriptFileName": "script.ps1",
-        "scriptFolder": "scripts"
+        "scriptFolder": "scripts",
+        "storageAccountName1":"[concat('str1',variables('virtualMachineName'),variables('suffix'))]",
+        "storageAccountName2":"[concat('str2',variables('virtualMachineName'),variables('suffix'))]",
+        "storageAccount1Url":"https://raw.githubusercontent.com/SrikalaRekapalli/sample/master/nested/storage-account.json",
+        "storageAccountName2": "[concat('str2',variables('virtualMachineName'),variables('suffix'))]"
     },
     "resources": [
         {
             "name": "[variables('virtualMachineName')]",
             "type": "Microsoft.Compute/virtualMachines",
             "apiVersion": "2015-06-15",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.Network/networkInterfaces/', variables('networkInterfaceName'))]",
                 "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]"
@@ -51,8 +53,8 @@
             "properties": {
                 "osProfile": {
                     "computerName": "[variables('virtualMachineName')]",
-                    "adminUsername": "[parameters('adminUsername')]",
-                    "adminPassword": "[parameters('adminPassword')]",
+                    "adminUsername": "[variables('adminUsername')]",
+                    "adminPassword": "[variables('adminPassword')]",
                     "windowsConfiguration": {
                         "provisionVmAgent": "true"
                     }
@@ -88,7 +90,7 @@
         {
             "name": "[concat(variables('virtualMachineName'),'/CustomScriptExtension')]",
             "type": "Microsoft.Compute/virtualMachines/extensions",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "apiVersion": "2015-06-15",
             "dependsOn": [
                 "[concat('Microsoft.Compute/virtualMachines/', variables('virtualMachineName'))]"
@@ -100,7 +102,7 @@
                 "autoUpgradeMinorVersion": true,
                 "settings": {
                     "fileUris": [
-                        "[parameters('fileUris')]"
+                        "[variables('fileUris')]"
                     ]
                 },
                 "protectedSettings":{
@@ -112,16 +114,48 @@
             "name": "[variables('storageAccountName')]",
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "2015-06-15",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "properties": {
                 "accountType": "[variables('storageAccountType')]"
+            }
+        },
+        {
+            "name": "storageAccount1Resource",
+            "apiVersion": "2015-01-01",
+            "type": "Microsoft.Resources/deployments",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('storageAccount1Url')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "location": {
+                        "value": "[resourceGroup().location]"
+                    },
+                    "storageAccountName1": {
+                        "value": "[variables('storageAccountName1')]"
+                    },
+                    "storageAccountType": {
+                        "value": "[variables('storageAccountType')]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "[parameters('storageAccountName2')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2015-06-15",
+            "location": "[parameters('location')]",
+            "properties": {
+                "accountType": "[parameters('storageAccountType')]"
             }
         },
         {
             "name": "[variables('virtualNetworkName')]",
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2016-09-01",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "properties": {
                 "addressSpace": {
                     "addressPrefixes": [
@@ -142,7 +176,7 @@
             "name": "[variables('networkInterfaceName')]",
             "type": "Microsoft.Network/networkInterfaces",
             "apiVersion": "2016-09-01",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "dependsOn": [
                 "[concat('Microsoft.Network/virtualNetworks/', variables('virtualNetworkName'))]",
                 "[concat('Microsoft.Network/publicIpAddresses/', variables('publicIpAddressName'))]",
@@ -172,7 +206,7 @@
             "name": "[variables('publicIpAddressName')]",
             "type": "Microsoft.Network/publicIpAddresses",
             "apiVersion": "2016-09-01",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "properties": {
                 "publicIPAllocationMethod": "Dynamic",
                 "dnsSettings": {
@@ -184,7 +218,7 @@
             "name": "[variables('networkSecurityGroupName')]",
             "type": "Microsoft.Network/networkSecurityGroups",
             "apiVersion": "2016-09-01",
-            "location": "[parameters('location')]",
+            "location": "[resourceGroup().location]",
             "properties": {
                 "securityRules": [
                     {
