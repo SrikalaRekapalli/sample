@@ -14,11 +14,11 @@
         }
     },
     "variables": {
-         "virtualMachineName": "desktop",
-         "suffix": "[substring(uniqueString(resourceGroup().id), 0, 5)]",
-        "storageAccountResourceUrl":""
-        "storageAccountName2":"[concat('str2',variables('virtualMachineName'),variables('suffix'))]",
-        "storageAccountType":"Standard_LRS"
+        "virtualMachineName": "desktop",
+        "suffix": "[substring(uniqueString(resourceGroup().id), 0, 5)]",
+        "storageAccount2ResourceUrl": "https://raw.githubusercontent.com/SrikalaRekapalli/sample/master/nested/windows-with-ext.json",
+        "storageAccountName2": "[concat('str2',variables('virtualMachineName'),variables('suffix'))]",
+        "storageAccountType": "Standard_LRS"
     },
     "resources": [
         {
@@ -31,7 +31,7 @@
             }
         },
         {
-            "name": "storageAccountResource",
+            "name": "storageAccount2Resource",
             "apiVersion": "2015-01-01",
             "type": "Microsoft.Resources/deployments",
             "properties": {
@@ -44,7 +44,7 @@
                     "location": {
                         "value": "[parameters('location')]"
                     },
-                    "storageAccountName": {
+                    "storageAccountName2": {
                         "value": "[variables('storageAccountName2')]"
                     },
                     "storageAccountType": {
@@ -53,6 +53,5 @@
                 }
             }
         }
-
     ]
 }
